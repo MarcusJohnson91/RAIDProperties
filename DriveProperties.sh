@@ -7,7 +7,9 @@ GetBasicDriveProperties() {
     IsRAID=$()
     if [ "$IsRAID" -gt 1 ]; then
         RAIDPath=$(sudo mdadm --detail -scan | awk '{printf $2}') # Should always be /dev/md0, not sure what'll happen if there's ever more than 1 RAID array.
+        NumRAIDDrives=$(sudo mdadm --detail $"RAIDPath" | grep -i 'Raid Devices : ' | awk '{printf $2}')
+        RAIDLevel=$(sudo mdadm --detail $"RAIDPath" | grep -i 'Raid Level : ' | awk '{printf $4}') # 0, 1, 10, 4, 5, 6
+        RAIDStatus=$(sudo mdadm --detail $"RAIDPath" | grep -i 'State : ' | awk '{printf $2}')
         RAIDType=$() # Hardware vs Software
-        RAIDLevel=$(sudo mdadm --detail $"RAIDPath" | grep -i 'Raid Level : ' | awk '{printf $4}' | tail -n 1) # 0, 1, 10, 4, 5, 6
     fi
 }
