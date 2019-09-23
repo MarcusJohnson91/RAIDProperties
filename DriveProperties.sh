@@ -1,9 +1,20 @@
 #!/usr/bin/env sh
 
+# Author: Marcus Johnson
+# Copyright: 2019+
+
 #Usage: first login to the machine you want to get the details from, then run the script with sudo.
 
 GetHardwareRAIDProperties() {
     #Use LSPCI
+	# 01:00.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS-3 3008 [Fury] (rev 02)
+	#
+	RAIDManufacturer=$(lspci | grep -i 'raid' | awk '{print $5}')
+	RAIDTyoe=$() # 0, 1, etc
+
+# LSI = storcli
+# 3Ware = tw_cli
+# Adaptec = smartctl
 }
 
 GetSoftwareRAIDProperties() {
@@ -25,6 +36,33 @@ GetBasicDriveProperties() {
     DriveSerials[$Drive]=$(lshw -class disk | grep 'serial:' | awk '{printf $2}')
     done
 }
+
+# Check for LSPCI, DMADM, and if they're missing check for dnf and apt so we can auto-install
+
+LSPCIPath=$(which lspci)
+DMADMPath=$(which dmadm)
+
+if [ $(tail -n 1 $LSPCIPath) -eq ")" ] # Need to install lspci
+	DNFPath=$(which dnf)
+	APTPath=$(which apt)
+	if [ $(tail -n 1 $DNFPath) -ne ")" ] # DNF is available
+		dnf install lspci
+	elif [ $(tail -n 1 $DNFPath) -ne ")" ] # APT is available, use it if we need to
+		apt update
+		apt install lspci
+	fi
+fi
+
+if [ $(tail -n 1 $DMADMPath) -eq ")" ]
+	DNFPath=$(which dnf)
+	APTPath=$(which apt)
+	if [ $(tail -n 1 $DNFPath) -ne ")" ] # DNF is available
+		dnf install dmadm
+	elif [ $(tail -n 1 $DNFPath) -ne ")" ] # APT is available, use it if we need to
+		apt update
+		apt install dmadm
+	fi
+fi
 
 NumberOfSoftwareRAIDArrays=$(mdadm --detail -scan | grep -i 'ARRAY' | wc -l)
 NumberOfHardwareRAIDArrays=$(lspci -vv | grep -i 'raid' | wc -l)
