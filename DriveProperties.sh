@@ -9,8 +9,14 @@ GetHardwareRAIDProperties() {
     #Use LSPCI
 	# 01:00.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS-3 3008 [Fury] (rev 02)
 	#
+	RAIDPath=$()
 	RAIDManufacturer=$(lspci | grep -i 'raid' | awk '{print $5}')
 	RAIDTyoe=$() # 0, 1, etc
+
+	if [ $RAIDManufacturer -eq "LSI" ]
+		#STORCLI
+	elif [ $RAIDManufacturer -eq "Adaptec" ]
+		# tw_cli
 
 # LSI = storcli
 # 3Ware = tw_cli
@@ -18,7 +24,7 @@ GetHardwareRAIDProperties() {
 }
 
 GetSoftwareRAIDProperties() {
-    #Use DMADM
+    #Use MDADM
 }
 
 GetRAIDArrayProperties() {
@@ -45,22 +51,28 @@ DMADMPath=$(which dmadm)
 if [ $(tail -n 1 $LSPCIPath) -eq ")" ] # Need to install lspci
 	DNFPath=$(which dnf)
 	APTPath=$(which apt)
+	YUMPath=$(which yum)
 	if [ $(tail -n 1 $DNFPath) -ne ")" ] # DNF is available
 		dnf install lspci
 	elif [ $(tail -n 1 $DNFPath) -ne ")" ] # APT is available, use it if we need to
 		apt update
 		apt install lspci
+	elif [ $(tail -n 1 $YUMPath) -ne ")" ] # Use YUM as a last resort
+		yum install lspci
 	fi
 fi
 
 if [ $(tail -n 1 $DMADMPath) -eq ")" ]
 	DNFPath=$(which dnf)
 	APTPath=$(which apt)
+	YUMPath=$(which yum)
 	if [ $(tail -n 1 $DNFPath) -ne ")" ] # DNF is available
 		dnf install dmadm
 	elif [ $(tail -n 1 $DNFPath) -ne ")" ] # APT is available, use it if we need to
 		apt update
 		apt install dmadm
+	elif [ $(tail -n 1 $YUMPath) -ne ")" ] # Use YUM as a last resort
+		yum install dmadm
 	fi
 fi
 
