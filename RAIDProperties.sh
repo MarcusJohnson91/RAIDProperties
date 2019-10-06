@@ -6,9 +6,9 @@
 #Usage: first login to the machine you want to get the details from, then run the script with sudo.
 
 GetHardwareRAIDProperties() {
-    	#Use LSPCI
+    #Use LSPCI
 	# 01:00.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS-3 3008 [Fury] (rev 02)
-	#
+	# HARDWARE RAID can have multiple "ports", an 8i raid card has 2 ports, with up to 4 drives for each port for a total of 8 drives attached to each raid card. 4i is the same but with 1 port, 4 drives per port, 4 drives total.
 	RAIDPath=$()
 	RAIDManufacturer=$(lspci | grep -i 'raid' | awk '{print $5}')
 	RAIDTyoe=$() # 0, 1, etc
@@ -101,7 +101,17 @@ if [ $(tail -n 1 $DMADMPath) -eq ")" ]
 	fi
 fi
 
+# there may also be multiple RAID cards, we need to pul in all of that information.
+# So, the heirarchy of information we need:
+# 1: Number of RAID cards
+# 2: Number of ports on each RAID card.
+# 3: Number of drives attached to each RAID port
+# 4: RAID card manufacturer, model, hardware revision, and firmware info (revision and firmwre just to be safe/future expansion)
+# Partitioning info for all RAID arrays
+ 
+
 NumberOfSoftwareRAIDArrays=$(mdadm --detail -scan | grep -i 'ARRAY' | wc -l)
+NumberOfHardwareRAIDCards=$(lspci -vv | grep -i 'raid' | wc -l)
 NumberOfHardwareRAIDArrays=$(lspci -vv | grep -i 'raid')
 NumberOfRAIDArrays=$($NumberOfSoftwareRAIDArrays + $NumberOfHardwareRAIDArrays)
 if [ "$NumberOfSoftwareRAIDArrays" -ge 1 ]; then
