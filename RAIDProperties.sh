@@ -3,26 +3,44 @@
 # Author: Marcus Johnson
 # Copyright: 2019+
 
-#Usage: first login to the machine you want to get the details from, then run the script with sudo.
+#Usage: first login to the machine you want to get the details from, then run the script with sudo su -
+
+DisplayInfo() {
+# Display the manufacturer, RAID type software vs hardwre, RAID level 0, 1, 10, etc,
+}
 
 GetHardwareRAIDProperties() {
 	Manufacturer=$1 # Argument #1
-    	#Use LSPCI
+    #Use LSPCI
 	# 01:00.0 RAID bus controller: LSI Logic / Symbios Logic MegaRAID SAS-3 3008 [Fury] (rev 02)
 	# HARDWARE RAID can have multiple "ports", an 8i raid card has 2 ports, with up to 4 drives for each port for a total of 8 drives attached to each raid card. 4i is the same but with 	1 port, 4 drives per port, 4 drives total.
-	RAIDPath=$()
+    # 4i vs 8i is embedded in the model number.
+    MegaCLI=$(which MegaCli)
+    RAIDPortType=$(MegaCLI adpallinfo aN | grep 'Product Name' | awk -F'_' '{print $1}')
+    RAIDNumPorts=$(echo "$RAIDPortType / 4" | bc)
+	
 	RAIDManufacturer=$(lspci | grep -i 'raid' | awk '{print $5}')
 	RAIDTyoe=$() # 0, 1, etc
 
 	if [ $RAIDManufacturer -eq "LSI" ]
-		#STORCLI
+		#MegaCLI
 	elif [ $RAIDManufacturer -eq "Adaptec" ]
 		# tw_cli
+            Device #1
+         Device is a Hard drive
+         State                              : Online
+         Block Size                         : 512 Bytes
+         Supported                          : Yes
+         Transfer Speed                     : SATA 3.0 Gb/s
+         Reported Channel,Device(T:L)       : 0,2(2:0)
+         Reported Location                  : Connector 0, Device 2
+         
+         Port on LSI, Connector on Adaptec
 	fi
 
-# LSI = storcli
+# LSI = MegaCLI
 # 3Ware = tw_cli
-# Adaptec = smartctl
+# Adaptec = ARCConf
 # Additional commands: lsblk, lspci
 
 #itxtemp1 = SoftwareRAID
@@ -30,7 +48,7 @@ GetHardwareRAIDProperties() {
 #itxtemp3 = HardwareRAID, LSI
 #itxtemp4 = HardwareRAID, LSI
 
-# run both lsblk and lspci, is lsblk comes back with a result from RAID, it's software RAID, if lspci comes back with a result for RAID, it's hardware RAID
+# run both lsblk and lspci, if lsblk comes back with a result from RAID, it's software RAID, if lspci comes back with a result for RAID, it's hardware RAID
 
 }
 
